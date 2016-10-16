@@ -110,11 +110,11 @@ self.addEventListener('fetch', function(event){
 	// );
 
 
-	if(requestURL.pathname.startsWith('/route')){
-		console.log("came", requestURL);
-		event.respondWith(fetchFromWebAPI(event.request));
-		return;
-	}
+	// if(requestURL.pathname.startsWith('/route')){
+	// 	console.log("came", requestURL);
+	// 	event.respondWith(fetchFromWebAPI(event.request));
+	// 	return;
+	// }
 
 	// FETCH THE DATA FROM CACHE:
 	event.respondWith(
@@ -126,12 +126,14 @@ self.addEventListener('fetch', function(event){
 				if(response){
 					console.log('[FETCH] Returning from Service Worker Cache: ', event.request.url);
 					return response;
-				}
+				}else{
 
+event.respondWith(fetchFromWebAPI(event.request));
 				// FETCH FROM NETWORK
 				console.log('[FETCH] Returning from Server: ', event.request.url);
 				return fetch(event.request);
-    })
+			}    
+})
 
 	);
 
