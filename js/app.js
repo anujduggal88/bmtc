@@ -77,20 +77,36 @@ var userSelectedDestination;
 function getDataFromAPI(url){
 
 //	var url = 'http://localhost:8080/route4';
+	console.log(url);
+	$.ajax({
+		url: url,
+		method: 'GET',
+		success: function (response) {
+			processJSONData(response);
+		},
+		error: function(error) {
+			console.log(error);
+		}
+	})
+	//
+	// return;
 
-	 fetch(url, {mode: 'no-cors'})
-		.then(function(response){
-			console.log('===============');
-			//console.log(response.clone().json());
-			return response.json();
-      //processJSONData(response.json());
-			//return response.json();
-}).then(function(j) {
- processJSONData(j);
-	// Yay, `j` is a JavaScript object
-	console.log("hey jjjjjj"+j);
-	//return j;
-});
+// 	 fetch(url)
+// 		.then(function(response){
+// 			console.log('===============');
+// 			//console.log(response.clone().json());
+// 			return response.json()
+// 			.catch(function (error) {
+// 				console.log(error);
+// 			})
+//       //processJSONData(response.json());
+// 			//return response.json();
+// }).then(function(j) {
+//  processJSONData(j);
+// 	// Yay, `j` is a JavaScript object
+// 	console.log("hey jjjjjj"+j);
+// 	//return j;
+// });
 
 
 
@@ -118,7 +134,7 @@ function getDataFromAPI(url){
 function processJSONData(jsonDataFromAPI){
 
 
-	console.log('JSON Objct: ' + jsonDataFromAPI);
+	console.log('JSON Objct: ' , jsonDataFromAPI);
 	// PROCESS THE JSON OBJECT AND PUT IT IN ARRAY:
 //	var my_JSON_object = JSON.parse(jsonDataFromAPI);
 

@@ -73,6 +73,8 @@ self.addEventListener('fetch', function(event){
 
 	var requestURL = new URL(event.request.url);
 
+	console.log("event.request -->", event.request);
+
 	//console.info('[SUCCESS] Service Worker Fetching');
 
 	// event.respondWith(
@@ -109,6 +111,7 @@ self.addEventListener('fetch', function(event){
 
 
 	if(requestURL.pathname.startsWith('/route')){
+		console.log("came", requestURL);
 		event.respondWith(fetchFromWebAPI(event.request));
 		return;
 	}
@@ -145,27 +148,32 @@ function fetchFromWebAPI(request){
 	console.log('[WebAPI] Service Worker Fethcing from Web API...');
 	var storageURL = new URL(request.url);
 	console.log('StorageURL is: ' + storageURL);
-	return caches.open(cache_name)
-									.then(function(cache){
-										caches.match(storageURL)
-																.then(function(response){
-																	// MATCH FOUND, RETURN THE RESPONSE:
-																	if(response){
-																		console.log('[CACHE] Service worker returning Response from the CACHE');
-																		return response;
-																	}
+	caches.match(storageURL)
+		.then(function(response){
+			// MATCH FOUND, RETURN THE RESPONSE:
+			if(response){
+				console.log('[CACHE] Service worker returning Response from the CACHE');
+				return response;
+			}
+			console.log('request -->', request);
+			// ELSE RETURN USING FETCH API:
+			return fetch(request)
+				.then(function(networkResponse){
+				// PUT TO CACHE, BEFORE RETURNING TO THE REQUEST:
+					console.log('[CACHE] Service Worker Caching the Response from Web API', networkResponse);
+					caches.open(cache_name)
+					.then(function (cache) {
+						cache.put(storageURL, networkResponse.clone())
 
-																	// ELSE RETURN USING FETCH API:
-																	return fetch(request)
-																							.then(function(networkResponse){
-																								// PUT TO CACHE, BEFORE RETURNING TO THE REQUEST:
-																								console.log('[CACHE] Service Worker Caching the Response from Web API', networkResponse);
-																								cache.put(storageURL, networkResponse.clone());
-																								return networkResponse;
-																							})
-																							.catch(function(err){
-																								console.log('Error is: ', err);
-																							})
-																})
-									})
+					})
+					.catch(function (error) {
+						console.log('error -->', error);
+					})
+
+					return networkResponse;
+				})
+				.catch(function(err){
+					console.log('Error is: ', err);
+				})
+		})
 }
