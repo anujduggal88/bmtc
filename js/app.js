@@ -2,6 +2,11 @@
 var url = 'http://localhost:8080/route4';
 var routeList=[];
 var routeDetails = [];
+var routeList_partial = [];
+var userJourney = [];
+var str_bus_routes = '';
+var busJourney = [];
+
 
 // MAPPINGS:
 var Map = {};
@@ -29,7 +34,6 @@ Map['411-B'] = 7072;
 Map['500-A'] = 7364;
 Map['504'] = 8092;
 
-
 // GET ELEMENTS
 var txt_source = document.getElementById('txt_source');
 var txt_destination = document.getElementById('txt_destination');
@@ -39,154 +43,87 @@ var ddl_destination = document.getElementById('ddl_destination');
 var userSelectedSource;
 var userSelectedDestination;
 
-// Get the routes from Web Service:
-// function getRoutesNew(url){
-// 	var request = new XMLHttpRequest();
-// 	request.open("GET", url, false);
-// 	request.send(null)
-//
-// 	// PARSE THE JSON OBJECT:
-// 	var my_JSON_object = JSON.parse(request.responseText);
-//
-// 	// LOOP THROUGH JSON OBJECT FOR ROUTE NUMBERS AND PUSH TO ARRAY:
-// 	for (var i=0;i<my_JSON_object.length;i++){
-// 		routeList.push(my_JSON_object[i][1]);
-// 	}
-//
-// 	return (routeList);
-//
-// }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+// GET JSON DATA AND PROCESS IT:
 function getDataFromAPI(url){
 
-//	var url = 'http://localhost:8080/route4';
-	console.log(url);
-	$.ajax({
-		url: url,
-		method: 'GET',
-		success: function (response) {
-			processJSONData(response);
-		},
-		error: function(error) {
-			console.log(error);
-		}
-	})
-	//
-	// return;
+	// MAKE A NETWORK CALL AND GET THE JSON DATA:
+	// $.ajax({
+	// 	url: url,
+	// 	method: 'GET',
+	// 	success: function (response) {
+	// 		// PROCESS THE JSON DATA AND KEEP IT IN ARRAY:
+	// 		console.log('response is: ', response);
+	// 		processJSONData(response);
+	// 	},
+	// 	error: function(error) {
+	// 		console.log('[JSON] Error in receiving JSON Data: ', error);
+	// 	}
+	// })
 
-// 	 fetch(url)
-// 		.then(function(response){
-// 			console.log('===============');
-// 			//console.log(response.clone().json());
-// 			return response.json()
-// 			.catch(function (error) {
-// 				console.log(error);
-// 			})
-//       //processJSONData(response.json());
-// 			//return response.json();
-// }).then(function(j) {
-//  processJSONData(j);
-// 	// Yay, `j` is a JavaScript object
-// 	console.log("hey jjjjjj"+j);
-// 	//return j;
-// });
+	fetch(url)
+		.then(function(response){
+			console.log('===============');
+			//console.log(response.clone().json());
+			return response.json();
+      //processJSONData(response.json());
+			//return response.json();
+		}).then(function(j) {
+			console.log('Parsed JSON --> ', j);
+		 	processJSONData(j);
+			// Yay, `j` is a JavaScript object
+			console.log("Response 'j': ", j);
+			//return j;
+		})
+		.catch(function(err){
+			console.log('Parsing Failed --> ', err);
+		});
 
-
-
-	// GET THE JSON DATA FROM WEB SERVICE:
-	// INTERNALLY, SERVICE WORKER DECIDES FROM WHERE THE DATA COMES(WEB/CACHE):
-
-	// return fetch(url,
-	// 					{
-	// 						method: 'GET',
-	// 						mode: 'no-cors',
-	// 						headers: new Headers({
-	// 																 'Content-Type': 'application/json'
-	// 															   })
-	// 					})
-	// 						.then(function(response){
-	// 							console.log("reposnceeeee" +response);
-	// 							console.log( '[Data] Data loaded as: ' + response.clone().json());
-	// 							return response.json();
-	// 						})
-	// 						.catch(function(err){
-	// 							console.log('[Data]: Failed to load ' + err);
-	// 						});
 }
 
+// PROCESS JSON DATA RECEIVED:
+// JSON DATA WAS OBTAINED BY MAKING A NETWORK CALL TO API:
+// (IT COULD BE RETURNED FROM NETWORK OR CACHE (SERVICE WORKER WOULD DECIDE))
 function processJSONData(jsonDataFromAPI){
 
-
-	console.log('JSON Objct: ' , jsonDataFromAPI);
 	// PROCESS THE JSON OBJECT AND PUT IT IN ARRAY:
-//	var my_JSON_object = JSON.parse(jsonDataFromAPI);
-
-	//console.log('JSON Objct: ' + my_JSON_object);
-
 	for (var i=0;i<jsonDataFromAPI.length;i++){
 		console.log(jsonDataFromAPI[i][1]);
+		str_bus_routes = str_bus_routes + "," + jsonDataFromAPI[i][1];
 		routeList.push(jsonDataFromAPI[i][1]);
 	}
-	//return (routeList);
 
+	localStorage["routeno"] = routeList;//routeList_partial;
+	console.log('local storage routeno: ', localStorage["routeno"]);
+	localStorage["userSource"] = userSelectedSource;
+	localStorage["userDestination"] = userSelectedDestination;
 
-	routeList_partial = processRouteList(routeList);
-console.log('routelist0'+routeList_partial);
-	// Put route numbers in Local Variable:
-	localStorage["routeno"] = routeList_partial;
-
-	// Put User Journey information in Local Storage:
-	localStorage["userSource"] = userSelectedSource;//txt_source.value;
-	localStorage["userDestination"] = userSelectedDestination;//txt_destination.value;
-
-	// Refresh the window:
+	// REDIRECT THE USER TO SCREEN 2:
 	window.location.href="bus_routes.html";
 }
 
 // PROCESS THE ROUTE LIST:
 function processRouteList(routeList){
-	var routeList_partial = [];
-	//var routeList_new = [];
 
+	// PROCESS routeList[] AND POPULATE routeList_partial[]:
 	for (var i = 0; i < routeList.length; i++) {
-		//alert(routeList[i]);
 		routeList_partial.push(routeList[i].split(','));
 	}
-
-	return routeList_partial;
 }
 
+// INITIALIZE THE VARIABLES WITH USER INPUT:
 function initializeVariables(){
 	userSelectedSource = ddl_source.options[ddl_source.selectedIndex].value;
 	userSelectedDestination = ddl_destination.options[ddl_destination.selectedIndex].value;
 }
 
-
 // SUBMIT BUTTON HANDLER:
+// 1. VALIDATE AND CHECK THE USER INPUT
+// 2. LOAD THE DATA FROM JSON FILE/SERVICE
+// 3. PROCEED TO bus_routes.html
 function btn_GuideMe(){
 
+	// INIT VARIABLES:
 	initializeVariables();
-
-	// 1. VALIDATE AND CHECK THE USER INPUT
-	// 2. LOAD THE DATA FROM JSON FILE/SERVICE
-	// 3. PROCEED TO routes.html
 
 	// VALIDATE USER INPUT:
 	if(userSelectedSource === ''  ||  userSelectedDestination === ''){
@@ -194,6 +131,7 @@ function btn_GuideMe(){
 		return;
 	}
 
+	// CHECK USER INPUT:
 	if(userSelectedSource === 'Kempegowda Bus Station' && userSelectedDestination === '1st Block Koramangala'){
 		// Route 1 - Majestic to Koramangala
 		url = 'http://localhost:8080/route1';
@@ -216,68 +154,35 @@ function btn_GuideMe(){
 		return;
 	}
 
-	// GET THE ROUTES IN ARRAY routeList[]:
-	//routeList = getRoutesNew(url);
-	var jsonDataFromAPI = getDataFromAPI(url);
-//	console.log('jsonFromApi' +jsonDataFromAPI);
-//	routeList = processJSONData(jsonDataFromAPI);
+	// INITIATE routeList[] WITH AVAILABLE BUS ROUTES FROM USER SOURCE TO DESTINATION:
 
-	// PROCESS ARRAY:
-	// routeList_partial = processRouteList(routeList);
-	//
-	// // Put route numbers in Local Variable:
-	// localStorage["routeno"] = routeList_partial;
-	//
-	// // Put User Journey information in Local Storage:
-	// localStorage["userSource"] = userSelectedSource;//txt_source.value;
-	// localStorage["userDestination"] = userSelectedDestination;//txt_destination.value;
-	//
-	// // Refresh the window:
-	// window.location.href="bus_routes.html";
+	// GET JSON DATA FROM API/CACHE AND PROCESS JSON DATA TO routeList[]:
+	getDataFromAPI(url);
+
+	// PROCESS routeList[] TO OBTAIN LIST OF BUS ROUTES ON USER JOURNEY:
+	// processRouteList(routeList);
+
+	// INITIATE LOCAL STORAGE TO ACCESS ACROSS PAGES:
+
 }
 
-function init_sub_array(busJourney, start, end){
 
-	var j = 0;
-	var sub_array = [];
-	var now_write = false;
-
-	for (var i = 0; i < busJourney.length; i++) {
-
-		// Start sub_array from User's BOARDING Location
-		if(busJourney[i] == start){
-			sub_array[j] = busJourney[i];
-			j++;
-			now_write = true;
-			continue;
-		}
-
-		// Write the sub_array with Bus Stops between User's BOARDING and
-		// DE-BOARDING locations
-		if(now_write){
-			sub_array[j] = busJourney[i];
-			j++;
-		}
-
-		// End sub_array from User's DE-BOARDING location
-		if(busJourney[i] == end){
-			break;
-		}
-	}
-	return sub_array;
-}
-
+// USER JOURNEY FROM USER's SOURCE TO DESTINATION:
+// 1. ALGO TO OBTAIN THE USER JOURNEY SET FROM BUS JOURNEY SET
+// 2. RETURN ARRAY/SET OF USER JOURNEY
 function getUserJourney(busJourney){
 
-	// 1. ALGO TO OBTAIN THE USER JOURNEY SET FROM BUS JOURNEY SET
-	// 2. RETURN ARRAY/SET OF USER JOURNEY
+	// busJourney[] RECEIVED HERE IS ARRAY OF BUS STOPS (BUS JOURNEY) OF A BUS ROUTE
+	var sub_array = []; // ARRAY OF USER JOURNEY - SUBSET OF busJourney[]
+	var start = localStorage["userSource"]; // USER BOARDING LOCATION
+	var end = localStorage["userDestination"]; // USER DE-BOARDING LOCATION
 
-	// busJourney IS ARRAY OF BUS STOPS (BUS JOURNEY) OF A ROUTE
-	var sub_array = []; // ARRAY OF USER JOURNEY
-	var start = localStorage["userSource"]; // USER BOARDING STOP
-	var end = localStorage["userDestination"]; // USER DE-BOARDING STOP
+	console.log('Bus Journey -->> ', busJourney);
 
+	// INIT sub_array[] WITH SUBSET OF USER'S JOURNEY:
 	sub_array = init_sub_array(busJourney, start, end);
+
+	console.log('Sub Array is: ', sub_array);
 
 	// LOG USER JOURNEY
 	console.log('[USER JOURNEY] Logging User Journey Details: ');
@@ -287,53 +192,89 @@ function getUserJourney(busJourney){
 	return sub_array;
 }
 
-// function getBusJourney(url){
-//
-// 	// 1. MAKE A CALL TO WEB SERVICE
-// 	// 2. RETURN THE ARRAY/SET OF BUS STOPS ON THE BUS ROUTE
-//
-// 	var request = new XMLHttpRequest();
-// 	request.open("GET", url, false);
-// 	request.send(null)
-//
-// 	// PARSE THE JSON OBJECT:
-// 	var my_JSON_object = JSON.parse(request.responseText);
-//
-// 	// LOOP THROUGH JSON OBJECT FOR BUS STOPS ON ROUTE SELECTED:
-// 	for (var i=0;i<my_JSON_object[0][7].length;i++){
-// 		routeDetails.push(my_JSON_object[0][7][i].start_bus_stop_name);
-// 	}
-//
-// 	// LOG BUS JOURNEY
-// 	console.log('[BUS JOURNEY] Logging Bus Journey Details: ');
-// 	for(var i = 0 ; i < routeDetails.length ; i++){
-// 		console.log(routeDetails[i]);
-// 	}
-// 	return (routeDetails);
-// }
+function getBusJourneyDataFromAPI(url){
 
+	console.log('Parsing: ', url);
+	// MAKE A NETWORK CALL AND GET THE JSON DATA:
+	$.ajax({
+		url: url,
+		method: 'GET',
+		success: function (response) {
+			// PROCESS THE JSON DATA AND KEEP IT IN ARRAY:
+			processJSONDataBusJourney(response);
+		},
+		error: function(error) {
+			console.log('[JSON] Error in receiving JSON Data: ', error);
+		}
+	})
+}
+
+// PROCESS JSON DATA FOR BUS JOURNEY:
 function processJSONDataBusJourney(jsonDataFromAPI){
-console.log('jsonDatabusJourney' +jsonDataFromAPI);
+
 	// LOOP THROUGH JSON OBJECT FOR BUS STOPS ON ROUTE SELECTED:
 	for (var i=0;i<jsonDataFromAPI[0][7].length;i++){
-		routeDetails.push(jsonDataFromAPI[0][7][i].start_bus_stop_name);
+		console.log(jsonDataFromAPI[0][7][i].start_bus_stop_name);
+		busJourney.push(jsonDataFromAPI[0][7][i].start_bus_stop_name);
 	}
-	return(routeDetails);
+
+	// INIT userJourney[] AND DISPLAY THE SUBSET (USER JOURNEY) FROM THE BUS JOURNEY
+	userJourney = getUserJourney(busJourney);
+
+	// INITIALIZE LOCAL STORAGE
+	localStorage["userRoute"] = txt_routeno.value;
+	localStorage["userJourney"] = userJourney;
+
+	// NAVIGATE TO SCREEN 3:
+	window.location.href="user_journey.html";
+}
+
+// INIT ARRAY OF USER JOURNEY (SUBSET OF BUS STOPS ON THE ROUTE):
+function init_sub_array(busJourney, start, end){
+
+	var indexOfSubArray = 0;
+	var sub_array = [];
+
+	// FLAG TO INDICATE WHEN TO START WRITING IN sub_array[]:
+	var now_write = false;
+
+	for (var indexOfBusJourney = 0; indexOfBusJourney < busJourney.length; indexOfBusJourney++) {
+
+		// START WRITING INTO sub_array[] FROM USER's BOARDING LOCATION:
+		if(busJourney[indexOfBusJourney] == start){
+			sub_array[indexOfSubArray] = busJourney[indexOfBusJourney];
+			indexOfSubArray++;
+			now_write = true;
+			continue;
+		}
+
+		// Write the sub_array with Bus Stops between User's BOARDING and
+		// DE-BOARDING locations:
+		if(now_write){
+			sub_array[indexOfSubArray] = busJourney[indexOfBusJourney];
+			indexOfSubArray++;
+		}
+
+		// End sub_array from User's DE-BOARDING location:
+		if(busJourney[indexOfBusJourney] == end){
+			break;
+		}
+	}
+	return sub_array;
 }
 
 
-// FROM routes.html to user_journey.html
+// START USER JOURNEY:
 function btn_startJourney(){
 
-	// CHECK CORNER CASES:
-	// 1. CHECK IF USER HAS NOT ENTERED ANY ROUTE
+	// CHECK USER'S INPUT:
 	if(txt_routeno.value === ''){
 		alert('Oops! You have not selected any Bus Route');
 		return;
 	}
 
 	// CHECK IF THE SELECTION BELONGS TO THE BUS ROUTE
-	// APPEND THE ROUTE ID TO THE URL FOR FURTHER PROCESSING
+	// APPEND THE ROUTE ID TO THE URL TO GET DATA FROM API
 	if( localStorage["routeno"].indexOf(txt_routeno.value) > -1 ){
 		url = 'http://localhost:8080/route/' + Map[txt_routeno.value];
 	}
@@ -342,17 +283,6 @@ function btn_startJourney(){
 		return;
 	}
 
-	// TODO:
-	// 1. CALL WEB SERVCIE WITH ABOVE URL TO OBTAIN BUS ROUTE JOURNEY
-	var jsonDataFromAPI = getDataFromAPI(url);
+	getBusJourneyDataFromAPI(url);
 
-	busJourney = processJSONDataBusJourney(jsonDataFromAPI);
-
-	// 2. DISPLAY THE SUBSET (USER JOURNEY) FROM THE BUS JOURNEY
-	userJourney = getUserJourney(busJourney);
-
-	localStorage["userRoute"] = txt_routeno.value;
-	localStorage["userJourney"] = userJourney;
-
-	window.location.href="user_journey.html";
 }
