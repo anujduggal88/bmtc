@@ -132,7 +132,7 @@ fetchFromWebAPI(event.request);
 				// FETCH FROM NETWORK
 				console.log('[FETCH] Returning from Server: ', event.request.url);
 				return fetch(event.request);
-			}    
+			}
 })
 
 	);
@@ -150,7 +150,7 @@ function fetchFromWebAPI(request){
 	console.log('[WebAPI] Service Worker Fethcing from Web API...');
 	var storageURL = new URL(request.url);
 	console.log('StorageURL is: ' + storageURL);
-	caches.match(storageURL)
+	return caches.match(storageURL)
 		.then(function(response){
 			// MATCH FOUND, RETURN THE RESPONSE:
 			if(response){
