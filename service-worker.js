@@ -128,7 +128,7 @@ self.addEventListener('fetch', function(event){
 					return response;
 				}else{
 
-event.respondWith(fetchFromWebAPI(event.request));
+fetchFromWebAPI(event.request);
 				// FETCH FROM NETWORK
 				console.log('[FETCH] Returning from Server: ', event.request.url);
 				return fetch(event.request);
